@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken')
 const passportJWT = require('passport-jwt')
 const like = require('../../models/like')
 const { sequelize } = require('../../models')
+const { groupBy } = require('lodash')
 const ExtractJwt = passportJWT.ExtractJwt
 const JwtStrategy = passportJWT.Strategy
 
@@ -132,23 +133,31 @@ const userController = {
       console.log(err)
     }
   },
-  getUserLike: async (req, res) => {
-    try {
-      const likes = await Like.findAll({
-        where: { UserId: req.params.id },
-        include: [
-          {
-            model: Tweet,
-            include: [User, Reply]
-          }
-        ],
+  getUserLike: (req, res) => {
+    Like.findAll({
+      where: {UserId: req.params.id},
+      attributes: ["TweetId"]
+    }).then(likes => {
+      const likeTweetsId = likes.map(like => like.TweetId)
+      Tweet.findAll({
+        where: { id: likeTweetsId},
         raw: true,
-        nest: true
+        nest: true,
+        include: [
+          { model: User, attributes: ["account", "name", "avatar"] },
+          { model: Like, attributes: [] },
+          { model: Reply, attributes: [] }
+        ],
+        attributes: ["id", "description",
+          [sequelize.fn('COUNT', sequelize.fn('DISTINCT', sequelize.col('likes.id'))), 'likes_count'], //新增欄位計算每則tweet的like
+          [sequelize.fn('COUNT', sequelize.fn('DISTINCT', sequelize.col('replies.id'))), 'replies_count'] //新增欄位計算每則tweet的reply
+        ],
+        group: ['likes.tweetId']
       })
-      return res.status(200).json(likes)
-    } catch (err) {
-      console.log(err)
-    }
+        .then(tweets => {
+          return res.json({tweets})
+        })
+    })
   },
   getUserFollowings: async (req, res) => {
     try {
