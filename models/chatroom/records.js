@@ -2,7 +2,7 @@ const { EventEmitter } = require("events");
 
 let instance;
 let data = [];
-let MAX = 10;
+let MAX = 50;
 
 class Records extends EventEmitter {
   constructor() {
