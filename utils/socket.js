@@ -1,6 +1,8 @@
 const socketio = require('socket.io')
 const records = require('../models/chatroom/records')
 
+let data = []
+let MAX = 10
 let onlineCount = 0 //統計線上人數
 
 const socket = server => {
@@ -30,7 +32,14 @@ const socket = server => {
     socket.on("sendMessage", (msg) => {
       // 確認前端傳入的formData，是否包含name和msg
       if (Object.keys(msg).length < 2) return;
-      records.push(msg); //將資料透過records判斷是否超過50筆資料
+      //將msg儲存於data array
+      data.push(msg);
+      //確認data array是否超過最大筆數
+      if (data.length > MAX) {
+        data.splice(0, 1);
+      }
+      socket.emit("newMessage", msg);
+      // records.push(msg); //將資料透過records判斷是否超過50筆資料
     })
 
     // //當發生離線事件
