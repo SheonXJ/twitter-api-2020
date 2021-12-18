@@ -2,7 +2,7 @@ const { EventEmitter } = require("events");
 
 let instance;
 let data = [];
-let MAX = 50;
+let MAX = 10;
 
 class Records extends EventEmitter {
   constructor() {
@@ -16,7 +16,7 @@ class Records extends EventEmitter {
       data.splice(0, 1);
     }
 
-    this.emit("new_message", msg);
+    this.emit("newMessage", msg);
   }
 
   get() {
