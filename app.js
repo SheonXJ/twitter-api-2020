@@ -25,9 +25,9 @@ require('./routes')(app)
 require('./utils/socket')(server) //載入socket並開啟server通道
 
 //routes
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/chatroom.html')
-})
+// app.get('/', (req, res) => {
+//   res.sendFile(__dirname + '/views/chatroom.html')
+// })
 
 //run serve
 server.listen(port, () => console.log(`Example app listening on port ${port}!`))

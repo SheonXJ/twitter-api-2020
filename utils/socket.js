@@ -4,7 +4,13 @@ const records = require('../models/chatroom/records')
 let onlineCount = 0 //統計線上人數
 
 const socket = server => {
-  const io = socketio(server) //socket連接server
+  //socket連接server
+  const io = socketio(server, {
+    cors: {
+      origin: "https://simple-twitter-tim.herokuapp.com/",
+      methods: ["GET", "POST"]
+    }
+  }) 
 
   //socket.io 監聽器
   io.on('connection', (socket) => {
