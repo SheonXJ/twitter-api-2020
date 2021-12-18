@@ -4,16 +4,21 @@ const records = require('../models/chatroom/records')
 let onlineCount = 0 //統計線上人數
 
 const socket = server => {
-  //socket連接server
+  //socket連接server,設定CORS
   const io = socketio(server, {
     cors: {
-      origin: "https://simple-twitter-tim.herokuapp.com/",
-      methods: ["GET", "POST"]
+      origin: [
+        'http://localhost:8080',
+        'https://jackjackhuo.github.io'
+      ],
+      methods: ["GET", "POST"],
+      transports: ['websocket', 'polling'],
     }
   }) 
 
   //socket.io 監聽器
   io.on('connection', (socket) => {
+    console.log('connection!')
     onlineCount++ // 有連線發生時增加人數+1
     io.emit("online", onlineCount) // 發送人數給前端輸出
     socket.emit("maxRecord", records.getMax()) // 新增記錄最大值，用來讓前端網頁知道要放多少筆
