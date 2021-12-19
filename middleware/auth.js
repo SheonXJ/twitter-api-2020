@@ -1,5 +1,7 @@
 const passport = require('../config/passport')
 const helper = require('../_helpers')
+const User = require('../models/user')
+
 module.exports = {
   authenticated: (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user) => {
@@ -22,7 +24,6 @@ module.exports = {
       return res.json({ status: 'error', message: 'permission denied' })
     }
   },
-
   authenticatedAdmin: (req, res, next) => {
     if (helper.getUser(req)) {
       if (helper.getUser(req).role === 'admin') {
@@ -32,5 +33,20 @@ module.exports = {
     } else {
       return res.json({ status: 'error', message: 'permission denied' })
     }
+  },
+  socketAuthenticated: (socket, next) => {
+    const token = socket.handshake.auth.token //從handshake資料取得token
+    const SECRET = process.env.JWT_SECRET
+
+    // verify a token
+    jwt.verify(token, SECRET, async (err, decoded) => {
+      try {
+        const user = await User.findByPk(decoded.id).toJSON()
+        socket.user = user
+        return next()
+      } catch {
+        return console.log(err)
+      }
+    })
   }
 }
