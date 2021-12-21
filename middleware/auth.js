@@ -1,6 +1,7 @@
 const passport = require('../config/passport')
 const helper = require('../_helpers')
-const User = require('../models/user')
+const { User } = require('../models')
+const jwt = require('jsonwebtoken')
 
 module.exports = {
   authenticated: (req, res, next) => {
@@ -41,10 +42,10 @@ module.exports = {
     // verify a token
     jwt.verify(token, SECRET, async (err, decoded) => {
       try {
-        const user = await User.findByPk(decoded.id).toJSON()
+        const user = (await User.findByPk(decoded.id)).toJSON()
         socket.user = user
         return next()
-      } catch {
+      } catch(err) {
         return console.log(err)
       }
     })

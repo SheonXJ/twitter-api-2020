@@ -14,22 +14,22 @@ const socket = server => {
         'https://jackjackhuo.github.io'
       ],
       methods: ["GET", "POST"],
-      transports: ['websocket', 'polling'],
     }
   }) 
 
   //socket.io 監聽器
   io.use(socketAuthenticated).on('connection', (socket) => {
-    console.log(`currentUser: ${socket.user}`)
-    // onlineCount++ // 有連線發生時增加人數+1
-    io.emit("online", onlineCount) // 發送人數給前端輸出
-    // socket.emit("maxRecord", records.getMax()) // 新增記錄最大值，用來讓前端網頁知道要放多少筆
-    socket.emit("allMessage", data) // 發送之前聊天紀錄
+    console.log(`currentUser: ${socket.user.name}`)
+    // 有連線發生時增加人數+1
+    onlineCount++ 
 
-    // socket.on("greet", () => {
-    //   socket.emit("greet", onlineCount);
-    // })
+    // 發送人數給前端輸出
+    io.emit("online", onlineCount) 
 
+    // 發送之前聊天紀錄
+    socket.emit("allMessage", data)
+
+    // 接收用戶傳送的訊息
     socket.on("sendMessage", (msg) => {
       // 確認前端傳入的formData，是否包含name和msg
       if (Object.keys(msg).length < 2) return
