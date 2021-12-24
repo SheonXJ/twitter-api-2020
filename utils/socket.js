@@ -39,7 +39,7 @@ const socket = server => {
       if (data.length > MAX) {
         data.splice(0, 1)
       }
-      socket.emit("newMessage", msg)
+      io.emit("newMessage", msg)
     })
 
     //當發生離線事件
