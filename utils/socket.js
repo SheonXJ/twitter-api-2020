@@ -18,9 +18,16 @@ const socket = server => {
 
   //socket.io 監聽器
   io.use(socketAuthenticated).on('connection', (socket) => {
+    const currentUser = socket.user
     console.log(`currentUser: ${socket.user.name}`)
     // 有連線發生時增加人數+1
     onlineCount++ 
+
+    // 使用者加入public Room
+    socket.on("public", user => {
+      socket.join("public")
+      io.emit('loginMsg', `${currentUser.name} has join the public Room`)
+    })
 
     // 發送人數給前端輸出
     io.emit("online", onlineCount) 
