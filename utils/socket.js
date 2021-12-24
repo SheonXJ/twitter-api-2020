@@ -1,8 +1,7 @@
 const socketio = require('socket.io')
 const { socketAuthenticated } = require('../middleware/auth')
+const { Message } = require('../models')
 
-let data = []
-let MAX = 10
 let onlineCount = 0 //統計線上人數
 
 const socket = server => {
@@ -30,15 +29,12 @@ const socket = server => {
     socket.emit("allMessage", data)
 
     // 接收用戶傳送的訊息
-    socket.on("sendMessage", (msg) => {
-      // 確認前端傳入的formData，是否包含name和msg
-      if (Object.keys(msg).length < 2) return
-      //將msg儲存於data array
-      data.push(msg)
-      //確認data array是否超過最大筆數
-      if (data.length > MAX) {
-        data.splice(0, 1)
+    socket.on("sendMessage", async (msg) => {
+      if (!msg.content || !msg.UserId || !msg.roomName) {
+        return
       }
+      const { content, UserId, roomName } = msg
+      const message = (await Message.create({ content, UserId, roomName }))
       io.emit("newMessage", msg)
     })
 
