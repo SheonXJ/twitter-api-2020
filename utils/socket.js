@@ -1,6 +1,6 @@
 const socketio = require('socket.io')
 const { socketAuthenticated } = require('../middleware/auth')
-const { Message } = require('../models')
+const { Message, User } = require('../models')
 
 let onlineCount = 0 //統計線上人數
 
@@ -24,16 +24,24 @@ const socket = server => {
     onlineCount++ 
 
     // 使用者加入public Room
-    socket.on("public", user => {
+    socket.on("public", async (data) => {
+      //將目前使用者join pubic room
       socket.join("public")
       io.emit('loginMsg', `${currentUser.name} has join the public Room`)
+      // 發送之前聊天紀錄
+      const allMessage = (await Message.findAll({ 
+        raw:true,
+        nest:true, 
+        where: {roomName: 'public'},
+        include: {model: User, attributes: ['name', 'avatar', 'account']},
+        order: ['createdAt', 'DESC'],
+        limit: 10,
+      }))
+      socket.emit("allMessage", allMessage)
     })
 
     // 發送人數給前端輸出
     io.emit("online", onlineCount) 
-
-    // 發送之前聊天紀錄
-    socket.emit("allMessage", data)
 
     // 接收用戶傳送的訊息
     socket.on("sendMessage", async (msg) => {
