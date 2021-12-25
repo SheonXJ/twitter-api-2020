@@ -2,7 +2,7 @@ const socketio = require('socket.io')
 const { socketAuthenticated } = require('../middleware/auth')
 const { Message, User } = require('../models')
 
-let onlineCount = 0 //統計線上人數
+let onlineUsers = []
 
 const socket = server => {
   //socket連接server,設定CORS
@@ -20,22 +20,22 @@ const socket = server => {
   io.use(socketAuthenticated).on('connection', (socket) => {
     const currentUser = socket.user
     console.log(`currentUser: ${socket.user.name}`)
-    // 有連線發生時增加人數+1
-    onlineCount++ 
 
     // 使用者加入public Room
     socket.on("public", async (data) => {
       //將目前使用者join pubic room
       socket.join("public")
+      //將currentUser 存入 data array
       io.emit('loginMsg', `${currentUser.name} has join the public Room`)
+      io.emit('loginUsers', data)
       // 發送之前聊天紀錄
       const allMessage = (await Message.findAll({ 
         raw:true,
         nest:true, 
         where: {roomName: 'public'},
-        include: {model: User, attributes: ['name', 'avatar', 'account']},
-        order: ['createdAt', 'DESC'],
-        limit: 10,
+        include: {model: User, attributes: ['name', 'avatar']},
+        order: [['createdAt', 'ASC']],
+        limit: 50,
       }))
       socket.emit("allMessage", allMessage)
     })
@@ -49,8 +49,11 @@ const socket = server => {
         return
       }
       const { content, UserId, roomName } = msg
-      const message = (await Message.create({ content, UserId, roomName }))
-      io.emit("newMessage", msg)
+      const sendMessage = (await Message.create({ content, UserId, roomName }))
+      msg.id = sendMessage.dataValues.id
+      msg.avatar = currentUser.avatar
+      msg.createdAt = sendMessage.dataValues.createdAt
+      io.to("public").emit("newMessage", msg)
     })
 
     //當發生離線事件
