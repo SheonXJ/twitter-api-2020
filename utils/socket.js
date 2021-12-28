@@ -51,13 +51,18 @@ const socket = server => {
       if (!msg.content || !msg.UserId || !msg.roomName) {
         return
       }
+      //防止用戶傳送空白訊息
+      if (msg.content.trim().length === 0) {
+        return
+      }
+      //將使用者send的msg創建於資料庫
       const { content, UserId, roomName } = msg
-      //將使用者send的msg創建於資料庫 
       const sendMessage = (await Message.create({ content, UserId, roomName }))
       //回傳整理後的msg給front-end
+      msg.User = {}
       msg.id = sendMessage.dataValues.id
-      msg.avatar = currentUser.avatar
-      msg.createdAt = sendMessage.dataValues.createdAt
+      msg.User.avatar = currentUser.avatar
+      msg.User.createdAt = sendMessage.dataValues.createdAt
       if (msg.roomName === 'public') {
         io.to(roomName).emit("newMessage", msg)
       }
@@ -77,14 +82,15 @@ const socket = server => {
 
     //當發生離線事件
     socket.on('disconnect', () => {
+      //發送目前上線的使用者
+      onlineUsers = onlineUsers.filter((user) => {
+        return user.id !== currentUser.id;
+      });
+      io.to("public").emit("loginUsers", onlineUsers);
+      //使用者離開所有房間
+      socket.leaveAll();
     });
   });
-
-  // // 新增 Records 的事件監聽器
-  // records.on("new_message", (msg) => {
-  //   // 廣播訊息到聊天室
-  //   io.emit("msg", msg);
-  // })
 }
 
 module.exports = socket
