@@ -42,7 +42,7 @@ const socket = server => {
         order: [['createdAt', 'DESC']],
         limit: 50,  
       }))
-      io.to(roomName).emit("allMessage", allMessage.reverse())
+      socket.emit("allMessage", allMessage.reverse())
     })
 
     //接收用戶傳送的訊息
@@ -61,8 +61,9 @@ const socket = server => {
       //回傳整理後的msg給front-end
       msg.User = {}
       msg.id = sendMessage.dataValues.id
+      msg.createdAt = sendMessage.dataValues.createdAt
+      msg.User.name = currentUser.nm
       msg.User.avatar = currentUser.avatar
-      msg.User.createdAt = sendMessage.dataValues.createdAt
       if (msg.roomName === 'public') {
         io.to(roomName).emit("newMessage", msg)
       }
