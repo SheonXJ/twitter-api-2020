@@ -39,10 +39,10 @@ const socket = server => {
         nest:true,
         where: {roomName: 'public'},
         include: {model: User, attributes: ['name', 'avatar']},
-        order: [['createdAt', 'ASC']],
-        limit: 50,
+        order: [['createdAt', 'DESC']],
+        limit: 50,  
       }))
-      io.to(roomName).emit("allMessage", allMessage)
+      io.to(roomName).emit("allMessage", allMessage.reverse())
     })
 
     //接收用戶傳送的訊息
