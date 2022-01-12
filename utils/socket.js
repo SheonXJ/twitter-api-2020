@@ -21,28 +21,20 @@ const socket = server => {
     const currentUser = socket.user
 
     //使用者加入public Room
-    socket.on("public", async (roomName) => {
-      //將目前使用者join pubic room
+    socket.on("join-room", async (roomName) => {
+      //將目前使用者join room
       socket.join(roomName)
-      //檢查currentUser是否存在於onlineList
-      const checkList = onlineUsers.every(user => user.id !== currentUser.id)
-      if (checkList) {
-        onlineUsers.push(currentUser)
+      if (roomName === 'public') {
+        //檢查currentUser是否存在於onlineList
+        const checkList = onlineUsers.every(user => user.id !== currentUser.id)
+        if (checkList) {
+          onlineUsers.push(currentUser)
+        }
+        //發送目前上線的使用者
+        io.to(roomName).emit('loginUsers', onlineUsers)
+        //發送使用者進入房間的訊息
+        io.to(roomName).emit('loginMsg', `${currentUser.name} has join the ${roomName} Room`)
       }
-      //發送目前上線的使用者
-      io.to(roomName).emit('loginUsers', onlineUsers)
-      //發送使用者進入房間的訊息
-      io.to(roomName).emit('loginMsg', `${currentUser.name} has join the ${roomName} Room`)
-      //發送之前聊天紀錄
-      const allMessage = (await Message.findAll({ 
-        raw:true,
-        nest:true,
-        where: {roomName: 'public'},
-        include: {model: User, attributes: ['name', 'avatar']},
-        order: [['createdAt', 'DESC']],
-        limit: 50,  
-      }))
-      socket.emit("allMessage", allMessage.reverse())
     })
 
     //接收用戶傳送的訊息
@@ -62,7 +54,6 @@ const socket = server => {
       msg.User = {}
       msg.id = sendMessage.dataValues.id
       msg.createdAt = sendMessage.dataValues.createdAt
-      msg.User.name = currentUser.nm
       msg.User.avatar = currentUser.avatar
       if (msg.roomName === 'public') {
         io.to(roomName).emit("newMessage", msg)
