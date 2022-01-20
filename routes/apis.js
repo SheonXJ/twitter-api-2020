@@ -184,16 +184,16 @@ router.delete(
 
 //chatroom
 router.get(
+  "/chat/messages/latest",
+  authenticated,
+  authenticatedUser,
+  chatroomController.getMessageLatest
+)
+router.get(
   "/chat/messages/:roomName",
   authenticated,
   authenticatedUser,
   chatroomController.getMessageHistory
 )
-router.get(
-  "/chat/messages/latest",
-  authenticated,
-  authenticatedUser,
-  chatroomController.getMessageHistory
-);
 
 module.exports = router

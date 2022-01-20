@@ -22,6 +22,8 @@ const socket = server => {
 
     //使用者加入public Room
     socket.on("join-room", async (roomName) => {
+      //使用者離開所有房間
+      socket.leaveAll();
       //將目前使用者join room
       socket.join(roomName)
       if (roomName === 'public') {
@@ -55,9 +57,7 @@ const socket = server => {
       msg.id = sendMessage.dataValues.id
       msg.createdAt = sendMessage.dataValues.createdAt
       msg.User.avatar = currentUser.avatar
-      if (msg.roomName === 'public') {
-        io.to(roomName).emit("newMessage", msg)
-      }
+      io.to(roomName).emit("newMessage", msg)
     })
 
     //接收使用者離開房間
