@@ -8,6 +8,7 @@ const userController = require('../controller/apis/userController')
 const replyController = require('../controller/apis/replyController')
 const adminController = require('../controller/apis/adminController')
 const likeController = require('../controller/apis/likeController')
+const chatroomController = require('../controller/apis/chatroomController')
 const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 const {
@@ -179,6 +180,20 @@ router.delete(
   authenticated,
   authenticatedAdmin,
   adminController.deleteTweet
+)
+
+//chatroom
+router.get(
+  "/chat/messages/latest",
+  authenticated,
+  authenticatedUser,
+  chatroomController.getMessageLatest
+)
+router.get(
+  "/chat/messages/:roomName",
+  authenticated,
+  authenticatedUser,
+  chatroomController.getMessageHistory
 )
 
 module.exports = router
